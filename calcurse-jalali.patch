@@ -1,0 +1,94 @@
+diff --git a/src/ui-calendar.c b/src/ui-calendar.c
+index c1719d8..9756fcf 100644
+--- a/src/ui-calendar.c
++++ b/src/ui-calendar.c
+@@ -44,6 +44,81 @@
+ 
+ #include "calcurse.h"
+ 
++static const unsigned DAY_SUM_JLEAP[] = {0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335};
++static const unsigned DAY_SUM[] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
++
++bool is_jleap(unsigned year)
++{
++  if (year % 4 == 0 && year % 100 != 0) {
++    return true;
++  }
++  if (year % 400 == 0 && year % 100 == 0) {
++    return true;
++  }
++
++  return false;
++}
++
++unsigned dey_jan_diff(unsigned year)
++{
++  if (is_jleap(year)) {
++    return 11;
++  }
++  return 10;
++}
++
++
++struct date to_jalali(const struct date * gregorian) {
++  unsigned days_sum;
++  if (is_jleap(gregorian->yyyy)) {
++    days_sum = DAY_SUM_JLEAP[gregorian->mm-1]+gregorian->dd;
++  } else {
++    days_sum = DAY_SUM[gregorian->mm-1]+gregorian->dd;
++  }
++  struct date date;
++  if (days_sum < 79) {
++        days_sum = days_sum + dey_jan_diff(gregorian->yyyy);
++        int jalali_year = gregorian->yyyy - 622;
++
++        if (days_sum % 30 == 0) {
++            date.yyyy = jalali_year;
++            date.dd = 30;
++            date.mm = (days_sum / 30) + 9;
++        } else {
++            date.yyyy = jalali_year;
++            date.dd = days_sum % 30;
++            date.mm = (days_sum / 30) + 10;
++        }
++    } else {
++        days_sum = days_sum - 79;
++        int jalali_year = gregorian->yyyy - 621;
++
++        if (days_sum <= 186) {
++            if (days_sum % 31 == 0) {
++                date.dd = 31;
++                date.yyyy = jalali_year;
++                date.mm = days_sum / 31;
++            } else {
++                date.dd = days_sum % 31;
++                date.yyyy = jalali_year;
++                date.mm = (days_sum / 31) + 1;
++            }
++        } else {
++            days_sum = days_sum - 186;
++            if (days_sum % 30 == 0) {
++                date.dd = 30;
++                date.yyyy = jalali_year;
++                date.mm = (days_sum / 30) + 6;
++            } else {
++                date.dd = days_sum % 30;
++                date.yyyy = jalali_year;
++                date.mm = (days_sum / 30) + 7;
++            }
++        }
++    }
++    return date;
++}
++
+ static struct date today, slctd_day;
+ static unsigned ui_calendar_view;
+ static int wday_start; /* this is used in signed arithmetic */
+@@ -136,6 +211,7 @@ void ui_calendar_set_current_date(void)
+ 	today.dd = tm.tm_mday;
+ 	today.mm = tm.tm_mon + 1;
+ 	today.yyyy = tm.tm_year + 1900;
++  today = to_jalali(&today);
+ 	pthread_mutex_unlock(&date_thread_mutex);
+ }
+ 
