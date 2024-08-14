@@ -92,7 +92,7 @@ index c89d1dd..21e2ec0 100644
 +  gregorian.dd = 0;
 +  gregorian.mm = 0;
 +  const unsigned march_day_diff = is_leap_year(gregorian.yyyy) ? 12 : 11;
-+  unsigned day_count = (jalali->mm >= 1 && jalali->mm <= 6) ? 
++  unsigned day_count = (jalali->mm >= 1 && jalali->mm <= 6) ?
 +  (jalali->mm-1)*31+jalali->dd :
 +  (6*31) + (jalali->mm - 7) * 30 + jalali->dd;
 +  unsigned gregorian_months[12] = {30, 31, 30, 31, 31, 30, 31, 30, 31, 31, 28, 31};;
