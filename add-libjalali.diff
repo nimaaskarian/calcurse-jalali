@@ -1,0 +1,35 @@
+diff --git a/configure.ac b/configure.ac
+index da211d0..157b497 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -43,6 +43,16 @@ AC_CHECK_HEADERS([pthread.h], [
+     AC_MSG_ERROR(The pthread library is required in order to build calcurse!))
+ ], AC_MSG_ERROR(The pthread header is required in order to build calcurse!))
+ 
++AC_CHECK_HEADERS([jalali/jtime.h], [
++    AC_CHECK_LIB(jalali, jstrftime, [
++	LIBS="$LIBS -ljalali"
++	AC_DEFINE(HAVE_LIBJALALI, 1,
++		  [Define to 1 if you have the 'jalali' library (-ljalai).])
++    ],
++    AC_MSG_ERROR(The jalali library is required in order to build jcalcurse!))
++], AC_MSG_ERROR(The jalali header is required in order to build jcalcurse!))
++]
++
+ AC_CHECK_HEADERS([math.h], [
+     AC_CHECK_LIB(m, exp, [
+ 	LIBS="$LIBS -lm"
+diff --git a/src/calcurse.h b/src/calcurse.h
+index 8322416..5888915 100644
+--- a/src/calcurse.h
++++ b/src/calcurse.h
+@@ -37,6 +37,9 @@
+ #ifndef CALCURSE_H
+ #define CALCURSE_H
+ 
++#include <time.h>
++#include <jalali/jtime.h>
++#include <jalali/jalali.h>
+ #include "config.h"
+ 
+ #ifdef HAVE_NCURSES_H

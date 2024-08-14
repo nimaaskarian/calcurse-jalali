@@ -1,24 +1,3 @@
-diff --git a/configure.ac b/configure.ac
-index da211d0..157b497 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -43,6 +43,16 @@ AC_CHECK_HEADERS([pthread.h], [
-     AC_MSG_ERROR(The pthread library is required in order to build calcurse!))
- ], AC_MSG_ERROR(The pthread header is required in order to build calcurse!))
- 
-+AC_CHECK_HEADERS([jalali/jtime.h], [
-+    AC_CHECK_LIB(jalali, jstrftime, [
-+	LIBS="$LIBS -ljalali"
-+	AC_DEFINE(HAVE_LIBJALALI, 1,
-+		  [Define to 1 if you have the 'jalali' library (-ljalai).])
-+    ],
-+    AC_MSG_ERROR(The jalali library is required in order to build jcalcurse!))
-+], AC_MSG_ERROR(The jalali header is required in order to build jcalcurse!))
-+]
-+
- AC_CHECK_HEADERS([math.h], [
-     AC_CHECK_LIB(m, exp, [
- 	LIBS="$LIBS -lm"
 diff --git a/src/calcurse.h b/src/calcurse.h
 index 8322416..1c8a828 100644
 --- a/src/calcurse.h
@@ -32,22 +11,10 @@ index 8322416..1c8a828 100644
  /* todo.c */
  extern llist_t todolist;
 diff --git a/src/strings.c b/src/strings.c
-index ed90bc7..dac9cbd 100644
+index ed90bc7..784f0fa 100644
 --- a/src/strings.c
 +++ b/src/strings.c
-@@ -35,7 +35,10 @@
-  */
- 
- #include <stdarg.h>
--
-+#include <stddef.h>
-+#include <time.h>
-+#include <jalali/jtime.h>
-+#include <jalali/jalali.h>
- #include "calcurse.h"
- 
- #define STRING_INITIAL_BUFSIZE 128
-@@ -129,6 +132,24 @@ int string_catftime(struct string *sb, const char *format, const struct tm *tm)
+@@ -129,6 +129,24 @@ int string_catftime(struct string *sb, const char *format, const struct tm *tm)
  	return n;
  }
  
