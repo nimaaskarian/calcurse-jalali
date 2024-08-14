@@ -1,5 +1,5 @@
 diff --git a/src/calcurse.c b/src/calcurse.c
-index c89d1dd..21e2ec0 100644
+index c89d1dd..aa35645 100644
 --- a/src/calcurse.c
 +++ b/src/calcurse.c
 @@ -886,3 +886,116 @@ int main(int argc, char **argv)
@@ -132,6 +132,18 @@ index 8322416..4d086bc 100644
  
  /* queue.c */
  void que_init(void);
+diff --git a/src/ui-calendar.c b/src/ui-calendar.c
+index c1719d8..d42d196 100644
+--- a/src/ui-calendar.c
++++ b/src/ui-calendar.c
+@@ -660,6 +660,7 @@ void ui_calendar_change_day(int datefmt)
+ 				slctd_day.dd = dday;
+ 				slctd_day.mm = dmonth;
+ 				slctd_day.yyyy = dyear;
++        slctd_day = to_gregorian(&slctd_day);
+ 			}
+ 			if (wrong_day) {
+ 				status_mesg(mesg_line1, mesg_line2);
 diff --git a/src/ui-day.c b/src/ui-day.c
 index 6a038fa..936bc0a 100644
 --- a/src/ui-day.c
