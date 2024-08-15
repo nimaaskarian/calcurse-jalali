@@ -1,8 +1,8 @@
 diff --git a/src/calcurse.c b/src/calcurse.c
-index c89d1dd..da938d4 100644
+index c89d1dd..ef42bd4 100644
 --- a/src/calcurse.c
 +++ b/src/calcurse.c
-@@ -886,3 +886,27 @@ int main(int argc, char **argv)
+@@ -886,3 +886,38 @@ int main(int argc, char **argv)
  		count = 0;
  	}
  }
@@ -30,30 +30,76 @@ index c89d1dd..da938d4 100644
 +
 +  return output;
 +}
++
++struct date to_jalali(const struct date * greogorian)
++{
++  struct tm tm = date2tm(*greogorian, 0, 0);
++  time_t t = mktime(&tm);
++  struct jtm jtm;
++  jlocaltime_r(&t, &jtm);
++  struct date output = {.mm=jtm.tm_mon+1, .dd=jtm.tm_mday, .yyyy=jtm.tm_year};
++
++  return output;
++}
 diff --git a/src/calcurse.h b/src/calcurse.h
-index 8322416..e01bf43 100644
+index 8322416..7ef54e1 100644
 --- a/src/calcurse.h
 +++ b/src/calcurse.h
-@@ -1362,6 +1362,7 @@ void wins_status_bar(void);
+@@ -1362,6 +1362,8 @@ void wins_status_bar(void);
  void wins_erase_status_bar(void);
  void wins_other_status_page();
  void wins_reset_status_page(void);
-+struct date to_gregorian(const struct date * jalali);
++struct date to_gregorian(const struct date *);
++struct date to_jalali(const struct date *);
  
  /* queue.c */
  void que_init(void);
 diff --git a/src/ui-calendar.c b/src/ui-calendar.c
-index c1719d8..d42d196 100644
+index c1719d8..b9611ec 100644
 --- a/src/ui-calendar.c
 +++ b/src/ui-calendar.c
-@@ -660,6 +660,7 @@ void ui_calendar_change_day(int datefmt)
- 				slctd_day.dd = dday;
- 				slctd_day.mm = dmonth;
- 				slctd_day.yyyy = dyear;
-+        slctd_day = to_gregorian(&slctd_day);
- 			}
+@@ -190,6 +190,11 @@ struct date *ui_calendar_get_slctd_day(void)
+ 	return &slctd_day;
+ }
+ 
++struct date ui_calendar_get_slctd_day_jalali(void)
++{
++  return to_jalali(&slctd_day);
++}
++
+ static int ui_calendar_get_wday(struct date *date)
+ {
+ 	struct tm t;
+@@ -651,16 +656,19 @@ void ui_calendar_change_day(int datefmt)
+ 			if (strlen(selected_day) == 0) {
+ 				wrong_day = 0;
+ 				ui_calendar_goto_today();
+-			} else
+-			    if (parse_date
+-				(selected_day, datefmt, &dyear, &dmonth,
+-				 &dday, ui_calendar_get_slctd_day())) {
+-				wrong_day = 0;
+-				/* go to chosen day */
+-				slctd_day.dd = dday;
+-				slctd_day.mm = dmonth;
+-				slctd_day.yyyy = dyear;
+-			}
++			} else {
++        struct date jslctd_day = ui_calendar_get_slctd_day_jalali();
++        if (parse_date
++          (selected_day, datefmt, &dyear, &dmonth,
++           &dday, &jslctd_day)) {
++          wrong_day = 0;
++          /* go to chosen day */
++          slctd_day.dd = dday;
++          slctd_day.mm = dmonth;
++          slctd_day.yyyy = dyear;
++          slctd_day = to_gregorian(&slctd_day);
++        }
++      }
  			if (wrong_day) {
  				status_mesg(mesg_line1, mesg_line2);
+ 				keys_wait_for_any_key(win[KEY].p);
 diff --git a/src/ui-day.c b/src/ui-day.c
 index 6a038fa..936bc0a 100644
 --- a/src/ui-day.c
