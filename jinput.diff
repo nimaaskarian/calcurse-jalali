@@ -42,10 +42,34 @@ index c89d1dd..ef42bd4 100644
 +  return output;
 +}
 diff --git a/src/calcurse.h b/src/calcurse.h
-index 8322416..7ef54e1 100644
+index 8322416..1b6dcca 100644
 --- a/src/calcurse.h
 +++ b/src/calcurse.h
-@@ -1362,6 +1362,8 @@ void wins_status_bar(void);
+@@ -1131,6 +1131,7 @@ int string_vcatf(struct string *, const char *, va_list);
+ int string_printf(struct string *, const char *, ...);
+ int string_catftime(struct string *, const char *, const struct tm *);
+ int string_strftime(struct string *, const char *, const struct tm *);
++int string_catf2jtime(struct string *sb, const char *format, struct tm *tm);
+ 
+ /* todo.c */
+ extern llist_t todolist;
+@@ -1241,6 +1242,7 @@ char *get_wday_default_string(int);
+ void draw_scrollbar(struct scrollwin *, int);
+ void item_in_popup(const char *, const char *, const char *, const char *);
+ time_t get_today(void);
++time_t jget_today(void);
+ time_t get_slctd_day(void);
+ time_t now(void);
+ char *nowstr(void);
+@@ -1249,6 +1251,7 @@ const char *get_tempdir(void);
+ char *new_tempfile(const char *);
+ int check_date(unsigned, unsigned, unsigned);
+ int parse_date(const char *, enum datefmt, int *, int *, int *, struct date *);
++int jparse_date(const char *, enum datefmt, int *, int *, int *, struct date *);
+ int parse_date_interactive(const char *, int *, int *, int *);
+ int check_sec(time_t *);
+ int check_time(unsigned, unsigned);
+@@ -1362,6 +1365,8 @@ void wins_status_bar(void);
  void wins_erase_status_bar(void);
  void wins_other_status_page();
  void wins_reset_status_page(void);
@@ -54,8 +78,37 @@ index 8322416..7ef54e1 100644
  
  /* queue.c */
  void que_init(void);
+diff --git a/src/strings.c b/src/strings.c
+index ed90bc7..784f0fa 100644
+--- a/src/strings.c
++++ b/src/strings.c
+@@ -129,6 +129,24 @@ int string_catftime(struct string *sb, const char *format, const struct tm *tm)
+ 	return n;
+ }
+ 
++int string_catf2jtime(struct string *sb, const char *format, struct tm *tm)
++{
++  struct jtm jtm;
++  time_t t = mktime(tm);
++  jlocaltime_r(&t, &jtm);
++
++	int n = 0;
++
++	while (!n) {
++		string_grow(sb, sb->bufsize * 2);
++		n = jstrftime(sb->buf + sb->len, sb->bufsize - sb->len, format,
++			     &jtm);
++	}
++	sb->len += n;
++
++	return n;
++}
++
+ int string_strftime(struct string *sb, const char *format, const struct tm *tm)
+ {
+ 	string_reset(sb);
 diff --git a/src/ui-calendar.c b/src/ui-calendar.c
-index c1719d8..b9611ec 100644
+index c1719d8..72677d0 100644
 --- a/src/ui-calendar.c
 +++ b/src/ui-calendar.c
 @@ -190,6 +190,11 @@ struct date *ui_calendar_get_slctd_day(void)
@@ -86,7 +139,7 @@ index c1719d8..b9611ec 100644
 -			}
 +			} else {
 +        struct date jslctd_day = ui_calendar_get_slctd_day_jalali();
-+        if (parse_date
++        if (jparse_date
 +          (selected_day, datefmt, &dyear, &dmonth,
 +           &dday, &jslctd_day)) {
 +          wrong_day = 0;
@@ -101,7 +154,7 @@ index c1719d8..b9611ec 100644
  				status_mesg(mesg_line1, mesg_line2);
  				keys_wait_for_any_key(win[KEY].p);
 diff --git a/src/ui-day.c b/src/ui-day.c
-index 6a038fa..936bc0a 100644
+index 6a038fa..87de10b 100644
 --- a/src/ui-day.c
 +++ b/src/ui-day.c
 @@ -809,6 +809,7 @@ static int update_rept(time_t start, long dur, struct rpt **rpt, llist_t *exc,
@@ -112,3 +165,105 @@ index 6a038fa..936bc0a 100644
  			nrpt.until = date2sec(d, 0, 0);
  		}
  		/* Conmpare days (midnights) - until-day may equal start day. */
+@@ -1511,7 +1512,7 @@ static char *fmt_day_heading(time_t date)
+ 
+ 	localtime_r(&date, &tm);
+ 	string_init(&s);
+-	string_catftime(&s, conf.day_heading, &tm);
++	string_catf2jtime(&s, conf.day_heading, &tm);
+ 	return string_buf(&s);
+ }
+ 
+diff --git a/src/utils.c b/src/utils.c
+index 2d30bfc..6bba06e 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -741,6 +741,22 @@ time_t get_today(void)
+ 	return date2sec(day, 0, 0);
+ }
+ 
++/* Returns the beginning of current day in seconds from 1970. */
++time_t jget_today(void)
++{
++	struct jtm lt;
++	time_t current_time;
++	struct date day;
++
++	current_time = time(NULL);
++	jlocaltime_r(&current_time, &lt);
++	day.mm = lt.tm_mon + 1;
++	day.dd = lt.tm_mday;
++	day.yyyy = lt.tm_year;
++
++	return date2sec(day, 0, 0);
++}
++
+ /* Returns the beginning of the selected day in the calendar. */
+ time_t get_slctd_day(void)
+ {
+@@ -854,13 +870,13 @@ static void get_ymd(int *year, int *month, int *day, time_t t)
+ 
+ static void get_weekday_ymd(int *year, int *month, int *day, int weekday)
+ {
+-	time_t t = get_today();
++	time_t t = jget_today();
+ 	struct tm tm;
+ 	int delta;
+ 
+ 	localtime_r(&t, &tm);
+-	delta = weekday - tm.tm_wday;
+-	t = date_sec_change(t, 0, delta > 0 ? delta : 7);
++	delta = weekday - tm.tm_wday - 1;
++	t = date_sec_change(t, 0, delta > 0 ? delta : 7+delta);
+ 
+ 	localtime_r(&t, &tm);
+ 	*day = tm.tm_mday;
+@@ -902,8 +918,8 @@ int check_sec(time_t *time)
+  * Returns 1 if sucessfully converted or 0 if the string is an invalid date.
+  */
+ int
+-parse_date(const char *date_string, enum datefmt datefmt, int *year,
+-	   int *month, int *day, struct date *slctd_date)
++parse_date_with_today(const char *date_string, enum datefmt datefmt, int *year,
++	   int *month, int *day, struct date *slctd_date, time_t today)
+ {
+ 	const char sep = (datefmt == DATEFMT_ISO) ? '-' : '/';
+ 	const char *p;
+@@ -914,13 +930,13 @@ parse_date(const char *date_string, enum datefmt datefmt, int *year,
+ 		return 0;
+ 
+ 	if (!strcasecmp(date_string, "today")) {
+-		get_ymd(year, month, day, get_today());
++		get_ymd(year, month, day, today);
+ 		return 1;
+ 	} else if (!strcasecmp(date_string, "yesterday")) {
+-		get_ymd(year, month, day, date_sec_change(get_today(), 0, -1));
++		get_ymd(year, month, day, date_sec_change(today, 0, -1));
+ 		return 1;
+ 	} else if (!strcasecmp(date_string, "tomorrow")) {
+-		get_ymd(year, month, day, date_sec_change(get_today(), 0, 1));
++		get_ymd(year, month, day, date_sec_change(today, 0, 1));
+ 		return 1;
+ 	} else if (!strcasecmp(date_string, "now")) {
+ 		get_ymd(year, month, day, now());
+@@ -1018,6 +1034,20 @@ parse_date(const char *date_string, enum datefmt datefmt, int *year,
+ 	return 1;
+ }
+ 
++int
++parse_date(const char *date_string, enum datefmt datefmt, int *year,
++	   int *month, int *day, struct date *slctd_date)
++{
++  return parse_date_with_today(date_string, datefmt, year, month, day, slctd_date, get_today());
++}
++
++int
++jparse_date(const char *date_string, enum datefmt datefmt, int *year,
++	   int *month, int *day, struct date *slctd_date)
++{
++  return parse_date_with_today(date_string, datefmt, year, month, day, slctd_date, jget_today());
++}
++
+ int
+ parse_date_interactive(const char *datestr, int *year, int *month, int *day)
+ {
