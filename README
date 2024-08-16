@@ -1,3 +1,4 @@
-A collection of patches to add partial jalali date support to calcurse
-- calcurse-jinput.patch: A simple, zero dependency, patch that adds jalali date input support.
-- calcurse-appointment-jcal-libjalai.patch: A patch that makes appointment dates to be written jalali, using libjalali and its jstrftime.
+A collection of patches to add partial jalali date support to calcurse. Has libjalali as their dependency
+- jinput.diff: A patch that adds jalali date input support.
+- appointment-jcal.diff: A patch that makes appointment dates to be written jalali, using libjalali and its jstrftime.
+- add-libjalali.diff: A patch that two patches above are dependent to. Adds libjalali to automake's dependency and include the headers in `calcurse.h`.
