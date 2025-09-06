@@ -25,12 +25,9 @@ index c1719d8..a3fde80 100644
  		custom_remove_attr(sw->inner, ATTR_HIGHEST);
  
  		/* Check if the day to be printed has an item or not. */
--		date.dd = t.tm_mday;
--		date.mm = t.tm_mon + 1;
--		date.yyyy = t.tm_year + 1900;
-+		date.dd = jt.tm_mday;
-+		date.mm = jt.tm_mon + 1;
-+		date.yyyy = jt.tm_year + 1900;
+ 		date.dd = t.tm_mday;
+ 		date.mm = t.tm_mon + 1;
+ 		date.yyyy = t.tm_year + 1900;
  		item_this_day = day_check_if_item(date);
  
  		/* Print the day numbers with appropriate decoration. */
