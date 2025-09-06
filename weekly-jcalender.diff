@@ -1,8 +1,20 @@
 diff --git a/src/ui-calendar.c b/src/ui-calendar.c
-index c1719d8..a3fde80 100644
+index c1719d8..e1a4e90 100644
 --- a/src/ui-calendar.c
 +++ b/src/ui-calendar.c
-@@ -505,6 +505,8 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
+@@ -489,8 +489,10 @@ draw_monthly_view(struct scrollwin *sw, struct date *current_day)
+ 
+ /* Draw the weekly view inside calendar panel. */
+ static void
+-draw_weekly_view(struct scrollwin *sw, struct date *current_day)
++draw_weekly_view(struct scrollwin *sw, struct date *current_day_arg)
+ {
++  struct date current_day_value = to_jalali(current_day_arg);
++  struct date *current_day = &current_day_value;
+ #define DAYSLICESNO  6
+ 	const int WCALWIDTH = 28;
+ 	struct tm t;
+@@ -505,6 +507,8 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
  	t = get_first_weekday(MONDAY);
  	draw_week_number(sw, t);
  
@@ -11,7 +23,7 @@ index c1719d8..a3fde80 100644
  	/* Now draw calendar view. */
  	for (j = 0; j < WEEKINDAYS; j++) {
  		/* get next day */
-@@ -512,6 +514,9 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
+@@ -512,6 +516,9 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
  			t = get_first_weekday(wday_start);
  		else
  			date_change(&t, 0, 1);
@@ -21,13 +33,7 @@ index c1719d8..a3fde80 100644
  
  		struct date date;
  		unsigned attr, item_this_day;
-@@ -524,18 +529,18 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
- 		custom_remove_attr(sw->inner, ATTR_HIGHEST);
- 
- 		/* Check if the day to be printed has an item or not. */
- 		date.dd = t.tm_mday;
- 		date.mm = t.tm_mon + 1;
- 		date.yyyy = t.tm_year + 1900;
+@@ -530,12 +537,12 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
  		item_this_day = day_check_if_item(date);
  
  		/* Print the day numbers with appropriate decoration. */
@@ -42,7 +48,7 @@ index c1719d8..a3fde80 100644
  			attr = ATTR_MIDDLE;
  		else if (item_this_day == 1)
  			attr = ATTR_LOW;
-@@ -548,7 +553,7 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
+@@ -548,7 +555,7 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
  		if (attr)
  			custom_apply_attr(sw->inner, attr);
  		mvwprintw(sw->inner, OFFY + 1, OFFX + 1 + 4 * j, "%02d",
@@ -51,7 +57,7 @@ index c1719d8..a3fde80 100644
  		if (attr)
  			custom_remove_attr(sw->inner, attr);
  		WINS_CALENDAR_UNLOCK;
-@@ -568,7 +573,7 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
+@@ -568,7 +575,7 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
  					int highlight;
  
  					highlight =
@@ -60,7 +66,7 @@ index c1719d8..a3fde80 100644
  					     slctd_day.dd) ? 1 : 0;
  					WINS_CALENDAR_LOCK;
  					if (highlight)
-@@ -588,7 +593,7 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
+@@ -588,7 +595,7 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
  			}
  		}
  	}

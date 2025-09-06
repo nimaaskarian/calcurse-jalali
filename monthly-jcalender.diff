@@ -1,0 +1,56 @@
+diff --git a/src/ui-calendar.c b/src/ui-calendar.c
+index c1719d8..9b25bc1 100644
+--- a/src/ui-calendar.c
++++ b/src/ui-calendar.c
+@@ -332,14 +332,18 @@ static void draw_week_number(struct scrollwin *sw, struct tm t)
+ 
+ /* Draw the monthly view inside calendar panel. */
+ static void
+-draw_monthly_view(struct scrollwin *sw, struct date *current_day)
++draw_monthly_view(struct scrollwin *sw, struct date *current_day_arg)
+ {
++  struct date current_day_value = to_jalali(current_day_arg);
++  struct date *current_day = &current_day_value;
++  struct date slctd_day = ui_calendar_get_slctd_day_jalali();
+ 	struct date c_day;
+ 	int slctd, w_day, numdays, j, week = 0;
+ 	unsigned yr, mo;
+ 	int w, monthw, weekw, dayw, ofs_x, ofs_y;
+ 	struct tm t, t_first;
+-	char *cp;
++  size_t size = 12*sizeof(char);
++  char *cp = malloc(size);
+ 	char bo, bc;
+ 	unsigned attr, day_attr;
+ 	int first_day, last_day;
+@@ -397,7 +401,10 @@ draw_monthly_view(struct scrollwin *sw, struct date *current_day)
+ 
+ 	/* Write the current month and year on top of the calendar */
+ 	custom_apply_attr(sw->inner, ATTR_HIGHEST);
+-	cp = nl_langinfo(MON_1 + mo - 1);
++  struct jtm jt;
++  jt.tm_mon = mo - 1;
++	size_t n = jstrftime(cp, size, "%B", &jt);
++  cp[n] = '\0';
+ 	mvwprintw(sw->inner, ofs_y, (w - (strlen(cp) + 5)) / 2,
+ 		  "%s %d", cp, slctd_day.yyyy);
+ 	custom_remove_attr(sw->inner, ATTR_HIGHEST);
+@@ -423,6 +430,7 @@ draw_monthly_view(struct scrollwin *sw, struct date *current_day)
+ 		c_day.dd = t.tm_mday;
+ 		c_day.mm = t.tm_mon + 1;
+ 		c_day.yyyy = t.tm_year + 1900;
++    c_day = to_jalali(&c_day);
+ 		slctd = !date_cmp(&c_day, &slctd_day);
+ 
+ 		/* Next line, week over. */
+@@ -485,8 +493,10 @@ draw_monthly_view(struct scrollwin *sw, struct date *current_day)
+ 		WINS_CALENDAR_UNLOCK;
+ 	}
+ 	monthly_view_cache_valid = 1;
++  free(cp);
+ }
+ 
++
+ /* Draw the weekly view inside calendar panel. */
+ static void
+ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
