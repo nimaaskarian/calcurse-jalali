@@ -1,0 +1,32 @@
+diff --git a/src/utils.c b/src/utils.c
+index 2d30bfc..42e40be 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -525,17 +525,18 @@ char *date_sec2date_str(time_t sec, const char *datefmt)
+  */
+ int date_change(struct tm *date, int delta_month, int delta_day)
+ {
+-	struct tm t;
+-
+-	t = *date;
+-	t.tm_mon += delta_month;
+-	t.tm_mday += delta_day;
+-	t.tm_isdst = -1;
+-	if (mktime(&t) == -1) {
++  time_t t = mktime(date);
++  struct jtm jtm;
++  jlocaltime_r(&t, &jtm);
++	jtm.tm_mon += delta_month;
++	jtm.tm_mday += delta_day;
++	jtm.tm_isdst = -1;
++	if (mktime(date) == -1) {
+ 		return 1;
+ 	} else {
+-		t.tm_isdst = -1;
+-		*date = t;
++		jtm.tm_isdst = -1;
++    time_t t = jmktime(&jtm);
++		*date = date2tm(sec2date(t), date->tm_hour, date->tm_min);
+ 		return 0;
+ 	}
+ }
