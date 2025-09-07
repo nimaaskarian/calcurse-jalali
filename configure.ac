@@ -49,8 +49,8 @@ AC_CHECK_HEADERS([jalali/jtime.h], [
 	AC_DEFINE(HAVE_LIBJALALI, 1,
 		  [Define to 1 if you have the 'jalali' library (-ljalai).])
     ],
-    AC_MSG_ERROR(The jalali library is required in order to build jcalcurse!))
-], AC_MSG_ERROR(The jalali header is required in order to build jcalcurse!))
+    AC_MSG_ERROR(The jalali library is required in order to build calcurse-jalali!))
+], AC_MSG_ERROR(The jalali header is required in order to build calcurse-jalali!))
 ]
 
 AC_CHECK_HEADERS([math.h], [
