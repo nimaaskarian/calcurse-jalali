@@ -1,15 +1,12 @@
-# calcurse
+# calcurse-jalali
+The same amazing [calcurse](https://github.com/lfos/calcurse), but with
+[patches](https://github.com/nimaaskarian/calcurse-jalali-patches) applied for
+jalali calendar support.
 
 [![Build and test](https://github.com/lfos/calcurse/actions/workflows/make.yml/badge.svg)](https://github.com/lfos/calcurse/actions/workflows/make.yml)
 [![Lint Python](https://github.com/lfos/calcurse/actions/workflows/lint_python.yml/badge.svg)](https://github.com/lfos/calcurse/actions/workflows/lint_python.yml)
 
-![Demo](https://calcurse.org/images/demo.gif)
-
-## Installation
-
-calcurse is available on a number of Linux distributions:
-
-[![Packaging status](https://repology.org/badge/vertical-allrepos/calcurse.svg?columns=3)](https://repology.org/project/calcurse/versions)
+![Demo](https://raw.githubusercontent.com/nimaaskarian/calcurse-jalali/refs/heads/pu/assets/demo.gif)
 
 ## Building from Source
 
@@ -24,6 +21,7 @@ may need to install those as well:
 * asciidoc (only needed for building documentation, can be skipped with --disable-docs)
 * gettext with development files
 * ncurses with development files
+* [libjalali](https://github.com/persiancal/jcal)
 
 If you are using a release tarball, the following commands can be used to build
 and install calcurse:
@@ -54,6 +52,11 @@ were designed and implemented by Lars Henriksen.
 Of course, there are numerous other contributors. Check the Git commit log and
 the `Thanks` section in the manual for a list of people who have contributed by
 reporting bugs, sending fixes, or suggesting improvements.
+
+### calcurse-jalali
+calcurse-jalali and its patches are written and maintained by [Nima
+Askarian](https://github.com/nimaaskarian) in 2024-2025, and distributed under
+BSD-2-Clause license (same license as calcurse as of now).
 
 ## Contributing and Donations
 
