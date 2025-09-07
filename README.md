@@ -3,8 +3,8 @@ The same amazing [calcurse](https://github.com/lfos/calcurse), but with
 [patches](https://github.com/nimaaskarian/calcurse-jalali-patches) applied for
 jalali calendar support.
 
-[![Build and test](https://github.com/lfos/calcurse/actions/workflows/make.yml/badge.svg)](https://github.com/lfos/calcurse/actions/workflows/make.yml)
-[![Lint Python](https://github.com/lfos/calcurse/actions/workflows/lint_python.yml/badge.svg)](https://github.com/lfos/calcurse/actions/workflows/lint_python.yml)
+[![Build and test](https://github.com/nimaaskarian/calcurse-jalali/actions/workflows/make.yml/badge.svg)](https://github.com/nimaaskarian/calcurse-jalali/actions/workflows/make.yml)
+[![Lint Python](https://github.com/nimaaskarian/calcurse-jalali/actions/workflows/lint_python.yml/badge.svg)](https://github.com/nimaaskarian/calcurse-jalali/actions/workflows/lint_python.yml)
 
 ![Demo](https://raw.githubusercontent.com/nimaaskarian/calcurse-jalali/refs/heads/pu/assets/demo.gif)
 
