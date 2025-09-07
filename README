@@ -3,4 +3,5 @@ A collection of patches to add partial jalali date support to calcurse. Have lib
 - appointment-jcal.diff: A patch that makes appointment dates to be written jalali, using libjalali and its jstrftime.
 - weekly-jcalender.diff: A patch that weekly calendar view to be jalali. depends on jinput.diff
 - monthly-jcalender.diff: A patch that monthly calendar view to be jalali. depends on jinput.diff
-- add-libjalali.diff: A patch that three patches above are dependent to. Adds libjalali to automake's dependency and include the headers in `calcurse.h`.
+- date_change-jalali.diff: A patch that makes date_change be relative to jalali date. for year ('y', 'Y' keys) and month ('m', 'M' keys) transitions
+- add-libjalali.diff: A patch that 5 patches above are dependent to. Adds libjalali to automake's dependency and include the headers in `calcurse.h`.
