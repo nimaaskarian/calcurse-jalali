@@ -129,6 +129,24 @@ int string_catftime(struct string *sb, const char *format, const struct tm *tm)
 	return n;
 }
 
+int string_catf2jtime(struct string *sb, const char *format, struct tm *tm)
+{
+  struct jtm jtm;
+  time_t t = mktime(tm);
+  jlocaltime_r(&t, &jtm);
+
+	int n = 0;
+
+	while (!n) {
+		string_grow(sb, sb->bufsize * 2);
+		n = jstrftime(sb->buf + sb->len, sb->bufsize - sb->len, format,
+			     &jtm);
+	}
+	sb->len += n;
+
+	return n;
+}
+
 int string_strftime(struct string *sb, const char *format, const struct tm *tm)
 {
 	string_reset(sb);

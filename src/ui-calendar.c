@@ -190,6 +190,11 @@ struct date *ui_calendar_get_slctd_day(void)
 	return &slctd_day;
 }
 
+struct date ui_calendar_get_slctd_day_jalali(void)
+{
+  return to_jalali(&slctd_day);
+}
+
 static int ui_calendar_get_wday(struct date *date)
 {
 	struct tm t;
@@ -332,14 +337,18 @@ static void draw_week_number(struct scrollwin *sw, struct tm t)
 
 /* Draw the monthly view inside calendar panel. */
 static void
-draw_monthly_view(struct scrollwin *sw, struct date *current_day)
+draw_monthly_view(struct scrollwin *sw, struct date *current_day_arg)
 {
+  struct date current_day_value = to_jalali(current_day_arg);
+  struct date *current_day = &current_day_value;
+  struct date slctd_day = ui_calendar_get_slctd_day_jalali();
 	struct date c_day;
 	int slctd, w_day, numdays, j, week = 0;
 	unsigned yr, mo;
 	int w, monthw, weekw, dayw, ofs_x, ofs_y;
 	struct tm t, t_first;
-	char *cp;
+  size_t size = 12*sizeof(char);
+  char *cp = malloc(size);
 	char bo, bc;
 	unsigned attr, day_attr;
 	int first_day, last_day;
@@ -397,7 +406,10 @@ draw_monthly_view(struct scrollwin *sw, struct date *current_day)
 
 	/* Write the current month and year on top of the calendar */
 	custom_apply_attr(sw->inner, ATTR_HIGHEST);
-	cp = nl_langinfo(MON_1 + mo - 1);
+  struct jtm jt;
+  jt.tm_mon = mo - 1;
+	size_t n = jstrftime(cp, size, "%B", &jt);
+  cp[n] = '\0';
 	mvwprintw(sw->inner, ofs_y, (w - (strlen(cp) + 5)) / 2,
 		  "%s %d", cp, slctd_day.yyyy);
 	custom_remove_attr(sw->inner, ATTR_HIGHEST);
@@ -423,6 +435,7 @@ draw_monthly_view(struct scrollwin *sw, struct date *current_day)
 		c_day.dd = t.tm_mday;
 		c_day.mm = t.tm_mon + 1;
 		c_day.yyyy = t.tm_year + 1900;
+    c_day = to_jalali(&c_day);
 		slctd = !date_cmp(&c_day, &slctd_day);
 
 		/* Next line, week over. */
@@ -485,12 +498,16 @@ draw_monthly_view(struct scrollwin *sw, struct date *current_day)
 		WINS_CALENDAR_UNLOCK;
 	}
 	monthly_view_cache_valid = 1;
+  free(cp);
 }
+
 
 /* Draw the weekly view inside calendar panel. */
 static void
-draw_weekly_view(struct scrollwin *sw, struct date *current_day)
+draw_weekly_view(struct scrollwin *sw, struct date *current_day_arg)
 {
+  struct date current_day_value = to_jalali(current_day_arg);
+  struct date *current_day = &current_day_value;
 #define DAYSLICESNO  6
 	const int WCALWIDTH = 28;
 	struct tm t;
@@ -505,6 +522,8 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
 	t = get_first_weekday(MONDAY);
 	draw_week_number(sw, t);
 
+{
+  struct date slctd_day = ui_calendar_get_slctd_day_jalali();
 	/* Now draw calendar view. */
 	for (j = 0; j < WEEKINDAYS; j++) {
 		/* get next day */
@@ -512,6 +531,9 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
 			t = get_first_weekday(wday_start);
 		else
 			date_change(&t, 0, 1);
+    struct jtm jt;
+    time_t time = mktime(&t);
+    jlocaltime_r(&time, &jt);
 
 		struct date date;
 		unsigned attr, item_this_day;
@@ -530,12 +552,12 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
 		item_this_day = day_check_if_item(date);
 
 		/* Print the day numbers with appropriate decoration. */
-		if (t.tm_mday == current_day->dd
+		if (jt.tm_mday == current_day->dd
 		    && current_day->mm == slctd_day.mm
 		    && current_day->yyyy == slctd_day.yyyy
 		    && current_day->dd != slctd_day.dd)
 			attr = ATTR_LOWEST;
-		else if (t.tm_mday == slctd_day.dd)
+		else if (jt.tm_mday == slctd_day.dd)
 			attr = ATTR_MIDDLE;
 		else if (item_this_day == 1)
 			attr = ATTR_LOW;
@@ -548,7 +570,7 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
 		if (attr)
 			custom_apply_attr(sw->inner, attr);
 		mvwprintw(sw->inner, OFFY + 1, OFFX + 1 + 4 * j, "%02d",
-			  t.tm_mday);
+			  jt.tm_mday);
 		if (attr)
 			custom_remove_attr(sw->inner, attr);
 		WINS_CALENDAR_UNLOCK;
@@ -568,7 +590,7 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
 					int highlight;
 
 					highlight =
-					    (t.tm_mday ==
+					    (jt.tm_mday ==
 					     slctd_day.dd) ? 1 : 0;
 					WINS_CALENDAR_LOCK;
 					if (highlight)
@@ -588,7 +610,7 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day)
 			}
 		}
 	}
-
+}
 	/* Draw marks to indicate midday on the sides of the calendar. */
 	WINS_CALENDAR_LOCK;
 	custom_apply_attr(sw->inner, ATTR_HIGHEST);
@@ -651,16 +673,19 @@ void ui_calendar_change_day(int datefmt)
 			if (strlen(selected_day) == 0) {
 				wrong_day = 0;
 				ui_calendar_goto_today();
-			} else
-			    if (parse_date
-				(selected_day, datefmt, &dyear, &dmonth,
-				 &dday, ui_calendar_get_slctd_day())) {
-				wrong_day = 0;
-				/* go to chosen day */
-				slctd_day.dd = dday;
-				slctd_day.mm = dmonth;
-				slctd_day.yyyy = dyear;
-			}
+			} else {
+        struct date jslctd_day = ui_calendar_get_slctd_day_jalali();
+        if (jparse_date
+          (selected_day, datefmt, &dyear, &dmonth,
+           &dday, &jslctd_day)) {
+          wrong_day = 0;
+          /* go to chosen day */
+          slctd_day.dd = dday;
+          slctd_day.mm = dmonth;
+          slctd_day.yyyy = dyear;
+          slctd_day = to_gregorian(&slctd_day);
+        }
+      }
 			if (wrong_day) {
 				status_mesg(mesg_line1, mesg_line2);
 				keys_wait_for_any_key(win[KEY].p);

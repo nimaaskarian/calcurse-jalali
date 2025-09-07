@@ -525,17 +525,18 @@ char *date_sec2date_str(time_t sec, const char *datefmt)
  */
 int date_change(struct tm *date, int delta_month, int delta_day)
 {
-	struct tm t;
-
-	t = *date;
-	t.tm_mon += delta_month;
-	t.tm_mday += delta_day;
-	t.tm_isdst = -1;
-	if (mktime(&t) == -1) {
+  time_t t = mktime(date);
+  struct jtm jtm;
+  jlocaltime_r(&t, &jtm);
+	jtm.tm_mon += delta_month;
+	jtm.tm_mday += delta_day;
+	jtm.tm_isdst = -1;
+	if (mktime(date) == -1) {
 		return 1;
 	} else {
-		t.tm_isdst = -1;
-		*date = t;
+		jtm.tm_isdst = -1;
+    time_t t = jmktime(&jtm);
+		*date = date2tm(sec2date(t), date->tm_hour, date->tm_min);
 		return 0;
 	}
 }
@@ -741,6 +742,22 @@ time_t get_today(void)
 	return date2sec(day, 0, 0);
 }
 
+/* Returns the beginning of current day in seconds from 1970. */
+time_t jget_today(void)
+{
+	struct jtm lt;
+	time_t current_time;
+	struct date day;
+
+	current_time = time(NULL);
+	jlocaltime_r(&current_time, &lt);
+	day.mm = lt.tm_mon + 1;
+	day.dd = lt.tm_mday;
+	day.yyyy = lt.tm_year;
+
+	return date2sec(day, 0, 0);
+}
+
 /* Returns the beginning of the selected day in the calendar. */
 time_t get_slctd_day(void)
 {
@@ -854,13 +871,13 @@ static void get_ymd(int *year, int *month, int *day, time_t t)
 
 static void get_weekday_ymd(int *year, int *month, int *day, int weekday)
 {
-	time_t t = get_today();
+	time_t t = jget_today();
 	struct tm tm;
 	int delta;
 
 	localtime_r(&t, &tm);
-	delta = weekday - tm.tm_wday;
-	t = date_sec_change(t, 0, delta > 0 ? delta : 7);
+	delta = weekday - tm.tm_wday - 1;
+	t = date_sec_change(t, 0, delta > 0 ? delta : 7+delta);
 
 	localtime_r(&t, &tm);
 	*day = tm.tm_mday;
@@ -902,8 +919,8 @@ int check_sec(time_t *time)
  * Returns 1 if sucessfully converted or 0 if the string is an invalid date.
  */
 int
-parse_date(const char *date_string, enum datefmt datefmt, int *year,
-	   int *month, int *day, struct date *slctd_date)
+parse_date_with_today(const char *date_string, enum datefmt datefmt, int *year,
+	   int *month, int *day, struct date *slctd_date, time_t today)
 {
 	const char sep = (datefmt == DATEFMT_ISO) ? '-' : '/';
 	const char *p;
@@ -914,13 +931,13 @@ parse_date(const char *date_string, enum datefmt datefmt, int *year,
 		return 0;
 
 	if (!strcasecmp(date_string, "today")) {
-		get_ymd(year, month, day, get_today());
+		get_ymd(year, month, day, today);
 		return 1;
 	} else if (!strcasecmp(date_string, "yesterday")) {
-		get_ymd(year, month, day, date_sec_change(get_today(), 0, -1));
+		get_ymd(year, month, day, date_sec_change(today, 0, -1));
 		return 1;
 	} else if (!strcasecmp(date_string, "tomorrow")) {
-		get_ymd(year, month, day, date_sec_change(get_today(), 0, 1));
+		get_ymd(year, month, day, date_sec_change(today, 0, 1));
 		return 1;
 	} else if (!strcasecmp(date_string, "now")) {
 		get_ymd(year, month, day, now());
@@ -1016,6 +1033,20 @@ parse_date(const char *date_string, enum datefmt datefmt, int *year,
 		*day = d;
 
 	return 1;
+}
+
+int
+parse_date(const char *date_string, enum datefmt datefmt, int *year,
+	   int *month, int *day, struct date *slctd_date)
+{
+  return parse_date_with_today(date_string, datefmt, year, month, day, slctd_date, get_today());
+}
+
+int
+jparse_date(const char *date_string, enum datefmt datefmt, int *year,
+	   int *month, int *day, struct date *slctd_date)
+{
+  return parse_date_with_today(date_string, datefmt, year, month, day, slctd_date, jget_today());
 }
 
 int

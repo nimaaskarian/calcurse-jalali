@@ -809,6 +809,7 @@ static int update_rept(time_t start, long dur, struct rpt **rpt, llist_t *exc,
 				continue;
 			}
 			struct date d = { day, month, year };
+      d = to_gregorian(&d);
 			nrpt.until = date2sec(d, 0, 0);
 		}
 		/* Conmpare days (midnights) - until-day may equal start day. */
@@ -1511,7 +1512,7 @@ static char *fmt_day_heading(time_t date)
 
 	localtime_r(&date, &tm);
 	string_init(&s);
-	string_catftime(&s, conf.day_heading, &tm);
+	string_catf2jtime(&s, conf.day_heading, &tm);
 	return string_buf(&s);
 }
 

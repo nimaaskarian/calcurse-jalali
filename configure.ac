@@ -43,6 +43,16 @@ AC_CHECK_HEADERS([pthread.h], [
     AC_MSG_ERROR(The pthread library is required in order to build calcurse!))
 ], AC_MSG_ERROR(The pthread header is required in order to build calcurse!))
 
+AC_CHECK_HEADERS([jalali/jtime.h], [
+    AC_CHECK_LIB(jalali, jstrftime, [
+	LIBS="$LIBS -ljalali"
+	AC_DEFINE(HAVE_LIBJALALI, 1,
+		  [Define to 1 if you have the 'jalali' library (-ljalai).])
+    ],
+    AC_MSG_ERROR(The jalali library is required in order to build jcalcurse!))
+], AC_MSG_ERROR(The jalali header is required in order to build jcalcurse!))
+]
+
 AC_CHECK_HEADERS([math.h], [
     AC_CHECK_LIB(m, exp, [
 	LIBS="$LIBS -lm"

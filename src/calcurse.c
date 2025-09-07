@@ -886,3 +886,38 @@ int main(int argc, char **argv)
 		count = 0;
 	}
 }
+
+struct jtm date2jtm(struct date day)
+{
+	struct jtm start;
+
+	start.tm_mon = day.mm - 1;
+	start.tm_mday = day.dd;
+	start.tm_year = day.yyyy;
+	start.tm_hour = 0;
+	start.tm_min = 0;
+	start.tm_sec = 0;
+	start.tm_isdst = -1;
+
+	return start;
+}
+
+struct date to_gregorian(const struct date * jalali)
+{
+  struct jtm jtm = date2jtm(*jalali);
+  time_t t = jmktime(&jtm);
+  struct date output = sec2date(t);
+
+  return output;
+}
+
+struct date to_jalali(const struct date * greogorian)
+{
+  struct tm tm = date2tm(*greogorian, 0, 0);
+  time_t t = mktime(&tm);
+  struct jtm jtm;
+  jlocaltime_r(&t, &jtm);
+  struct date output = {.mm=jtm.tm_mon+1, .dd=jtm.tm_mday, .yyyy=jtm.tm_year};
+
+  return output;
+}

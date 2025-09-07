@@ -37,6 +37,9 @@
 #ifndef CALCURSE_H
 #define CALCURSE_H
 
+#include <time.h>
+#include <jalali/jtime.h>
+#include <jalali/jalali.h>
 #include "config.h"
 
 #ifdef HAVE_NCURSES_H
@@ -1131,6 +1134,7 @@ int string_vcatf(struct string *, const char *, va_list);
 int string_printf(struct string *, const char *, ...);
 int string_catftime(struct string *, const char *, const struct tm *);
 int string_strftime(struct string *, const char *, const struct tm *);
+int string_catf2jtime(struct string *sb, const char *format, struct tm *tm);
 
 /* todo.c */
 extern llist_t todolist;
@@ -1241,6 +1245,7 @@ char *get_wday_default_string(int);
 void draw_scrollbar(struct scrollwin *, int);
 void item_in_popup(const char *, const char *, const char *, const char *);
 time_t get_today(void);
+time_t jget_today(void);
 time_t get_slctd_day(void);
 time_t now(void);
 char *nowstr(void);
@@ -1249,6 +1254,7 @@ const char *get_tempdir(void);
 char *new_tempfile(const char *);
 int check_date(unsigned, unsigned, unsigned);
 int parse_date(const char *, enum datefmt, int *, int *, int *, struct date *);
+int jparse_date(const char *, enum datefmt, int *, int *, int *, struct date *);
 int parse_date_interactive(const char *, int *, int *, int *);
 int check_sec(time_t *);
 int check_time(unsigned, unsigned);
@@ -1362,6 +1368,8 @@ void wins_status_bar(void);
 void wins_erase_status_bar(void);
 void wins_other_status_page();
 void wins_reset_status_page(void);
+struct date to_gregorian(const struct date *);
+struct date to_jalali(const struct date *);
 
 /* queue.c */
 void que_init(void);
