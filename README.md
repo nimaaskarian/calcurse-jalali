@@ -1,7 +1,7 @@
 # calcurse-jalali
 The same amazing [calcurse](https://github.com/lfos/calcurse), but with
 [patches](https://github.com/nimaaskarian/calcurse-jalali-patches) applied for
-jalali calendar support.
+jalali calendar support for inputs and shown dates and calendars.
 
 [![Build and test](https://github.com/nimaaskarian/calcurse-jalali/actions/workflows/make.yml/badge.svg)](https://github.com/nimaaskarian/calcurse-jalali/actions/workflows/make.yml)
 [![Lint Python](https://github.com/nimaaskarian/calcurse-jalali/actions/workflows/lint_python.yml/badge.svg)](https://github.com/nimaaskarian/calcurse-jalali/actions/workflows/lint_python.yml)
@@ -68,3 +68,4 @@ We are also extremely grateful for donations which help us continue developing
 calcurse as open source software and are used to cover recurring costs, such as
 for our servers. You can use https://calcurse.org/donate/ for a one-time
 payment. If you prefer another form of donation, do not hesitate to contact us!
+
