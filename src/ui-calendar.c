@@ -347,8 +347,7 @@ draw_monthly_view(struct scrollwin *sw, struct date *current_day_arg)
 	unsigned yr, mo;
 	int w, monthw, weekw, dayw, ofs_x, ofs_y;
 	struct tm t, t_first;
-  size_t size = 12*sizeof(char);
-  char *cp = malloc(size);
+  char cp[12];
 	char bo, bc;
 	unsigned attr, day_attr;
 	int first_day, last_day;
@@ -408,7 +407,7 @@ draw_monthly_view(struct scrollwin *sw, struct date *current_day_arg)
 	custom_apply_attr(sw->inner, ATTR_HIGHEST);
   struct jtm jt;
   jt.tm_mon = mo - 1;
-	size_t n = jstrftime(cp, size, "%B", &jt);
+	size_t n = jstrftime(cp, 12, "%B", &jt);
   cp[n] = '\0';
 	mvwprintw(sw->inner, ofs_y, (w - (strlen(cp) + 5)) / 2,
 		  "%s %d", cp, slctd_day.yyyy);
@@ -498,9 +497,7 @@ draw_monthly_view(struct scrollwin *sw, struct date *current_day_arg)
 		WINS_CALENDAR_UNLOCK;
 	}
 	monthly_view_cache_valid = 1;
-  free(cp);
 }
-
 
 /* Draw the weekly view inside calendar panel. */
 static void
