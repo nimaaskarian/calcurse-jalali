@@ -220,7 +220,7 @@ void ui_calendar_monthly_view_cache_set_invalid(void)
 	monthly_view_cache_valid = 0;
 }
 
-static int weeknum(const struct tm *t, int wday_start)
+static int weeknum(const struct jtm *t, int wday_start)
 {
 	int wday, wnum;
 
@@ -237,7 +237,7 @@ static int weeknum(const struct tm *t, int wday_start)
 /*
  * Compute the week number according to ISO 8601.
  */
-static int ISO8601weeknum(const struct tm *t)
+static int ISO8601weeknum(const struct jtm *t)
 {
 	int wnum, jan1day;
 
@@ -260,16 +260,16 @@ static int ISO8601weeknum(const struct tm *t)
 	case SUNDAY:
 		if (wnum == 0) {
 			/* Get week number of last week of last year. */
-			struct tm dec31ly;	/* 12/31 last year */
+			struct jtm dec31ly;	/* 12/31 last year */
 
 			dec31ly = *t;
 			dec31ly.tm_year--;
 			dec31ly.tm_mon = 11;
-			dec31ly.tm_mday = 31;
+			dec31ly.tm_mday = 29 + ISLEAP(dec31ly.tm_year);
 			dec31ly.tm_wday =
 			    (jan1day == SUNDAY) ? 6 : jan1day - 1;
 			dec31ly.tm_yday =
-			    364 + ISLEAP(dec31ly.tm_year + 1900);
+			    364 + ISLEAP(dec31ly.tm_year);
 			wnum = ISO8601weeknum(&dec31ly);
 		}
 		break;
@@ -323,7 +323,7 @@ static struct tm get_first_weekday(int wday_start)
 	return t;
 }
 
-static void draw_week_number(struct scrollwin *sw, struct tm t)
+static void draw_week_number(struct scrollwin *sw, struct jtm t)
 {
 	int weeknum = ISO8601weeknum(&t);
 
@@ -430,6 +430,9 @@ draw_monthly_view(struct scrollwin *sw, struct date *current_day_arg)
 	for (j = first_day, t = t_first, w_day = 0;
 	     j < last_day;
 	     j++, date_change(&t, 0, 1), w_day++, w_day %= WEEKINDAYS) {
+    struct jtm jt;
+    time_t time = mktime(&t);
+    jlocaltime_r(&time, &jt);
 
 		c_day.dd = t.tm_mday;
 		c_day.mm = t.tm_mon + 1;
@@ -447,7 +450,7 @@ draw_monthly_view(struct scrollwin *sw, struct date *current_day_arg)
 			    (mo == 1 && j == WEEKINDAYS) ||
 			    (mo == 12 && j >= 4 * WEEKINDAYS)) {
 				date_change(&t, 0, WDAY(MONDAY));
-				week = ISO8601weeknum(&t);
+				week = ISO8601weeknum(&jt);
 				date_change(&t, 0, -WDAY(MONDAY));
 			} else
 				week++;
@@ -517,7 +520,10 @@ draw_weekly_view(struct scrollwin *sw, struct date *current_day_arg)
 
 	/* Print the week number, calculated from monday. */
 	t = get_first_weekday(MONDAY);
-	draw_week_number(sw, t);
+  struct jtm jt;
+  time_t time = mktime(&t);
+  jlocaltime_r(&time, &jt);
+	draw_week_number(sw, jt);
 
 {
   struct date slctd_day = ui_calendar_get_slctd_day_jalali();

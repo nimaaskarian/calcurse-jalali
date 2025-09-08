@@ -354,7 +354,7 @@ struct date {
 	unsigned yyyy;		/* year AD */
 };
 
-#define ISLEAP(y) ((((y) % 4) == 0 && ((y) % 100) != 0) || ((y) % 400) == 0)
+#define ISLEAP(y) (jalali_is_jleap(y))
 
 /* Appointment definition. */
 struct apoint {
